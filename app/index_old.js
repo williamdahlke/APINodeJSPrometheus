@@ -20,23 +20,22 @@ const tempoDeResposta = new prom.Histogram({
 
 let zeraUsuariosLogados = false;
 
-setInterval(() => {
-    //incrementa contador
-    const taxaDeErro = 5;
-    let statusCode = (Math.random() < taxaDeErro/100) ? '500' : '200';
-    contadorRequisicoes.labels(statusCode).inc();
+ setInterval(() => {
+     //incrementa contador
+     const taxaDeErro = 5;
+     let statusCode = (Math.random() < taxaDeErro/100) ? '500' : '200';
+     contadorRequisicoes.labels(statusCode).inc();
     
-    //Atualiza gauge
-    let usuariosLogados = zeraUsuariosLogados ? 0 : 500 + Math.round(50 * Math.random());
-    usuariosOnline.set(usuariosLogados);
+     //Atualiza gauge
+     let usuariosLogados = zeraUsuariosLogados ? 0 : 500 + Math.round(50 * Math.random());
+     usuariosOnline.set(usuariosLogados);
     
-    //Observa tempo de resposta
-
-    let tempoObservado = randn_bm(0,3,4)
-    tempoDeResposta.observe(tempoObservado);    
+     //Observa tempo de resposta
+     let tempoObservado = randn_bm(0,3,4)
+     tempoDeResposta.observe(tempoObservado);    
     
-}, 100);
-
+ }, 50);
+ 
 function randn_bm(min, max, skew) {
     let u = 0, v = 0;
     while(u === 0) u = Math.random() //Converting [0,1) to (0,1)
@@ -55,8 +54,8 @@ function randn_bm(min, max, skew) {
     return num
   }
 
-app.get('/', function(req, res){
-    res.send('API online');
+app.get('/', function(req, res){    
+    res.send('API online');    
 })
 
 app.get('/zera-usuarios-logados', function(req, res){
