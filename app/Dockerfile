@@ -18,8 +18,3 @@ EXPOSE 3031
 
 # Comando para rodar a aplicação
 CMD ["node", "src/index.js"]
-
-#constrói uma imagem docker 
-#docker build -t gis-metrics-api .
-
-#docker run -d --name=gis-metrics-api -p 3031:3031 gis-metrics-api

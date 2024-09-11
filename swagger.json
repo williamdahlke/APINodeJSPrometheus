@@ -1,0 +1,15 @@
+{
+   "swaggerDefinition": {
+     "openapi": "3.0.0",
+     "info": {
+       "title": "GIS Automation API",
+       "version": "1.0.0",
+       "description": "GIS Automation API",
+       "contact": {
+         "name": "William Guilherme Dahlke"
+       },
+       "servers": ["http://localhost:3032"]
+     }
+   },
+   "apis": ["./src/*.js", "./src/routes/*.js"]
+}

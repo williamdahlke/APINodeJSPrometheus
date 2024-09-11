@@ -1,0 +1,7 @@
+docker run --name prometheus --rm -d -p 9090:9090 prom/prometheus
+docker run --name prometheus -d -p 9090:9090 -v C:\Users\williamgd\Documents\Desenvolvimento\projetos\prometheusGrafana\app\prometheus\prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+docker run -d --name=grafana -p 3000:3000 grafana/grafana
+docker run -d -p 9091:9091 prom/pushgateway
+docker build -t gis-metrics-api .
+docker run -d --name=gis-metrics-api -p 3031:3031 gis-metrics-api
+npm install swagger-ui-express swagger-jsdoc
