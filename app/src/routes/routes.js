@@ -72,13 +72,43 @@ router.get('/metrics', async function (req, res) {
  *         description: Invalid value
  */
 router.post('/metrics/insert', function (req, res) {
-    const incrementValue = req.body.value;
-    if (typeof incrementValue === 'number') {
-        usuariosOnline.inc(incrementValue);
-        res.status(200).send(`Incremented by ${incrementValue}`);
-    } else {
-        res.status(400).send('Invalid value');
+    if (isValidJson(req.body)){        
+        res.status(400).send("JSON is not valid.");
     }
+    
+    const metricType = req.body.Type;
+    switch (metricType){
+        case 1:            
+            break;
+        case 2:
+            setGaugeValue(req.body);
+            break;
+        case 3:
+            break;
+        default:
+            res.status(400).send("Metric type isn't registered.");
+    }
+    res.status(200).send("Finalizou");
 });
 
+function setGaugeValue(requestBody){
+    if (requestBody.MetricName == "gis_usuarios_online_total"){
+        if (requestBody.Operation == 1){
+            usuariosOnline.inc(1);
+        } 
+        else if (requestBody.Operation == 2){
+            usuariosOnline.dec(1);
+        }        
+    }
+}
+
+function isValidJson(jsonString) {
+    try {
+      JSON.parse(jsonString);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  
 module.exports = router;
