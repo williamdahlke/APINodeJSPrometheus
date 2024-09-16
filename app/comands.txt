@@ -5,3 +5,6 @@ docker run -d -p 9091:9091 prom/pushgateway
 docker build -t gis-metrics-api .
 docker run -d --name=gis-metrics-api -p 3031:3031 gis-metrics-api
 npm install swagger-ui-express swagger-jsdoc
+npm i --save-dev @types/express
+npx tsc
+node dist/index.js

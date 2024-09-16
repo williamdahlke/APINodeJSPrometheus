@@ -13,8 +13,10 @@ RUN npm install
 # Copie o restante do código da aplicação para o diretório de trabalho
 COPY . .
 
+RUN npx tsc
+
 # Exponha a porta em que a aplicação irá rodar
 EXPOSE 3031
 
 # Comando para rodar a aplicação
-CMD ["node", "src/index.js"]
+CMD ["node", "dist/src/index.js"]

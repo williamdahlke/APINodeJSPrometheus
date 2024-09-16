@@ -8,8 +8,8 @@
        "contact": {
          "name": "William Guilherme Dahlke"
        },
-       "servers": ["http://localhost:3032"]
+       "servers": ["http://localhost:3031"]
      }
    },
-   "apis": ["./src/*.js", "./src/routes/*.js"]
+   "apis": ["./src/routes/*.ts"]
 }
