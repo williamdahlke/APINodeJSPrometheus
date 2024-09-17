@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
 import prom from 'prom-client';
-import { HistogramMetric, Metric } from '../models';
+import { HistogramMetric, Metric, WegUser } from '../models';
 import { instanciasAtivas, tempoGerarProjeto, tempoOperacoesSap, tempoSalvarProjeto, usuariosAtivosGauge } from '../metrics';
 
 const router = express.Router();
 const register = prom.register;
 
-let usuariosAtivos: Map<string, number> = new Map();
+let usuariosAtivos: WegUser[] = [];
 
 /**
  * @swagger
@@ -28,7 +28,8 @@ router.post('/metrics/insert', (req: Request, res: Response) => {
     return res.status(400).send("JSON is not valid.");
   }
   
-  let metric: Metric = req.body;  
+  let metric: Metric = req.body;
+  metric.User = new WegUser(req.body.User.Name, req.body.User.Unity); 
 
   switch (metric.Type) {
     case 2:
@@ -41,25 +42,29 @@ router.post('/metrics/insert', (req: Request, res: Response) => {
     default:
       return res.status(400).send("Metric type isn't registered.");
   }
-  registrarOperacao(metric);
-  res.status(200).send();
-});
 
-function registrarOperacao(metric: Metric) {
-  usuariosAtivos.set(metric.User, Date.now());
-  gerarMetricaUsuariosAtivos(metric);
-}
+  let usuarioSelecionado = usuariosAtivos.find(x=> x.Name == metric.User.Name && x.Unity == metric.User.Unity);
+  if (usuarioSelecionado == undefined){
+    usuariosAtivos.push(metric.User);
+  }
 
-function gerarMetricaUsuariosAtivos(metric: Metric) {
-  const filtroData = new Date();
+  let filtroData = new Date();  
   filtroData.setDate(filtroData.getDate() - 90);
 
-  const arrayUsuariosAtivos = Array.from(usuariosAtivos).filter(([_, valor]) => valor >= filtroData.getTime());
-  usuariosAtivos = new Map(arrayUsuariosAtivos);
+  usuariosAtivos = usuariosAtivos.filter((x) => x.LastOpened >= filtroData.getTime());
+
+  let groupedUsers = groupByUnity(usuariosAtivos);
+  let groupedUsersArray = Object.values(groupedUsers);
+  console.log(groupedUsersArray);
 
   usuariosAtivosGauge.reset();
-  usuariosAtivosGauge.labels(metric.Labels[0]).inc(usuariosAtivos.size);
-}
+
+  groupedUsersArray.forEach((item) => {
+    usuariosAtivosGauge.labels(item.unity).inc(item.totalUsers)
+  })
+  
+  res.status(200).send();
+});
 
 function setGaugeValue(metric: Metric) {
   const labelsBody = metric.Labels;
@@ -99,6 +104,22 @@ function isValidJson(json: any): boolean {
   } catch (e) {
     return false;
   }
+}
+
+interface GroupedUsers {
+  [key: string]: { unity: string, totalUsers: number };
+}
+
+// Função para agrupar usuários pela propriedade 'unity' e contar o total de usuários por unidade
+function groupByUnity(users: WegUser[]): GroupedUsers {
+  return users.reduce((groups: GroupedUsers, user: WegUser) => {
+      const unity = user.Unity;
+      if (!groups[unity]) {
+          groups[unity] = { unity: unity, totalUsers: 0 };
+      }
+      groups[unity].totalUsers++;
+      return groups;
+  }, {});
 }
 
 export default router;
