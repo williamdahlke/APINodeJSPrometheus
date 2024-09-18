@@ -5,6 +5,14 @@ import swaggerSetup from '../swagger';
 const app: Application = express();
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+    if (req.path === '/') {
+        res.redirect('/api');
+    } else {
+        next();
+    }
+});
 app.use('/api', userRoutes);
 swaggerSetup(app);
 
