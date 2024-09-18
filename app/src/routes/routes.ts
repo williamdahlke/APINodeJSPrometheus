@@ -12,9 +12,17 @@ let activeUsersArray: WegUser[] = [];
 
 /**
  * @swagger
+ * tags:
+ *  - name: Metrics
+ *    description: Operations to get and set metrics
+ */
+
+/**
+ * @swagger
  * /api/metrics:
  *   get:
  *     summary: Retrieve a list of metrics
+ *     tags: [Metrics]
  *     responses:
  *       200:
  *         description: A list of metrics
@@ -24,6 +32,50 @@ router.get('/metrics', async (req: Request, res: Response) => {
   res.end(await register.metrics());
 });
 
+/**
+ * @swagger
+ * /api/metrics/insert:
+ *  post:
+ *    summary: Post metrics to integrate with prometheus
+ *    tags: [Metrics]
+ *    requestBody:
+ *      required: true
+ *      content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               MetricName:
+ *                 type: string
+ *               Type:
+ *                 type: integer
+ *               Operation:
+ *                 type: integer
+ *               Labels:
+ *                 type: array
+ *                 items:
+ *                  type: string
+ *               User:
+ *                 type: object
+ *                 properties:
+ *                  Name:
+ *                    type: string
+ *                  Unity:
+ *                    type: string
+ *             example:
+ *               MetricName: gis_usuarios_online_total
+ *               Type: 2
+ *               Operation: 1
+ *               Labels: ["WTD_BNU"]
+ *               User:
+ *                Name: williamgd
+ *                Unity: WTD_BNU
+ *    responses:
+ *      201:
+ *        description: Metrics registered successfully
+ *      400:
+ *        description: An error occurred or JSON is invalid
+ */
 router.post('/metrics/insert', (req: Request, res: Response) => {
 
   if (!isValidJson(req.body)) {
