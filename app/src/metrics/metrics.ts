@@ -6,12 +6,6 @@ export const activeInstances = new prom.Gauge({
   labelNames: ['unity']
 });
 
-export const timeToSaveProject = new prom.Histogram({
-  name: 'gis_tempo_salvarproj_segundos',
-  help: 'Tempo em segundos que o gis levou para salvar o projeto',
-  buckets: [100, 300, 500, 800, 1000, 3000, 5000, 8000]
-});
-
 const convertMinutesToMs = (arr: number[]) => arr.map(num => num * 60000);
 const bucketTimeToGenerateProj = convertMinutesToMs([15, 20, 25, 30, 35, 40, 45, 50, 55, 60]);
 
