@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import prom from 'prom-client';
 import { HistogramMetric, Metric, WegUser } from '../models';
-import { activeInstances, timeToGenerateProj, timeOperationsSAP, timeToSaveProject, activeUsers } from '../metrics';
+import { activeInstances, timeToGenerateProj, timeOperationsSAP, activeUsers } from '../metrics';
 import { GroupedUsers } from '../interfaces';
 import { isValidJson } from '../validate';
 
@@ -90,7 +90,7 @@ router.post('/metrics/insert', (req: Request, res: Response) => {
       setGaugeMetric(metric);
       break;
     case 3:
-      const histogramMetric : HistogramMetric = new HistogramMetric(metric);
+      const histogramMetric : HistogramMetric = new HistogramMetric(metric, req.body.ElapsedTimeMs);
       setHistogramMetric(histogramMetric);
       break;
     default:
@@ -143,9 +143,6 @@ function setGaugeMetric(metric: Metric) {
 function setHistogramMetric(metric: HistogramMetric) {
   const labelsBody = metric.Labels;
   switch (metric.MetricName) {
-    case "gis_tempo_salvarproj_segundos":
-      timeToSaveProject.observe(metric.ElapsedTimeMs!);
-      break;
     case "cm_tempo_gerarproj_minutos":
       timeToGenerateProj.observe(metric.ElapsedTimeMs!);
       break;
