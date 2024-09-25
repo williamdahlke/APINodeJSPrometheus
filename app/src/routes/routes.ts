@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import prom from 'prom-client';
-import { HistogramMetric, Metric, WegUser } from '../models';
-import { activeInstances, timeToGenerateProj, timeOperationsSAP, activeUsers } from '../metrics';
+import { GaugeMetric, HistogramMetric, Metric, WegUser } from '../models';
+import { activeUsers, addUpdateGauge, addUpdateHistogram } from '../metrics';
 import { GroupedUsers } from '../interfaces';
 import { isValidJson } from '../validate';
 
@@ -82,45 +82,42 @@ router.post('/metrics/insert', (req: Request, res: Response) => {
     return res.status(400).send("JSON is not valid.");
   }
   
-  let metric: Metric = req.body;
-  metric.User = new WegUser(req.body.User.Name, req.body.User.Unity); 
-
-  switch (metric.Type) {
+  switch (req.body.Type ){
     case 2:
-      setGaugeMetric(metric);
+      const gaugeMetric : GaugeMetric = req.body;
+      gaugeMetric.User = new WegUser(req.body.User.Name, req.body.User.Unity); 
+      setGaugeMetric(gaugeMetric);
       break;
+
     case 3:
-      const histogramMetric : HistogramMetric = new HistogramMetric(metric, req.body.ElapsedTimeMs);
+      const histogramMetric : HistogramMetric = req.body;
+      histogramMetric.User = new WegUser(req.body.User.Name, req.body.User.Unity);     
       setHistogramMetric(histogramMetric);
       break;
-    default:
-      return res.status(400).send("Metric type isn't registered.");
-  }
-  setActiveUserGaugeMetric(metric);
 
+    default:
+      return res.status(400).send("Metric type isn't registered.");      
+  }
   res.status(201).send();
 });
 
+function setGaugeMetric(metric: GaugeMetric) {
+  addUpdateGauge(metric);
+  setActiveUserGaugeMetric(metric);
+}
+
+function setHistogramMetric(metric: HistogramMetric) {
+  addUpdateHistogram(metric);
+  setActiveUserGaugeMetric(metric);
+}
+
 function setActiveUserGaugeMetric(metric: Metric) {
-  const selectedUser = activeUsersArray.find(x => x.Name == metric.User.Name && x.Unity == metric.User.Unity);
-  if (selectedUser == undefined) activeUsersArray.push(metric.User);
+  const selectedUser = activeUsersArray.find(x => x.Name == metric.User!.Name && x.Unity == metric.User!.Unity);
+  if (selectedUser == undefined) activeUsersArray.push(metric.User!);
 
   filterActiveUsersByTime();
   let groupedUsersArray = groupActiveUsersByUnity();
   setActiveUsersMetricValue(groupedUsersArray);
-}
-
-function setActiveUsersMetricValue(groupedUsersArray: { unity: string; totalUsers: number; }[]) {
-  activeUsers.reset();
-  groupedUsersArray.forEach((item) => {
-    activeUsers.labels(item.unity).inc(item.totalUsers);
-  });
-}
-
-function groupActiveUsersByUnity() {
-  let groupedUsers = groupByUnity(activeUsersArray);
-  let groupedUsersArray = Object.values(groupedUsers);
-  return groupedUsersArray;
 }
 
 function filterActiveUsersByTime() {
@@ -129,29 +126,10 @@ function filterActiveUsersByTime() {
   activeUsersArray = activeUsersArray.filter((x) => x.LastOpened >= filtroData.getTime());
 }
 
-function setGaugeMetric(metric: Metric) {
-  const labelsBody = metric.Labels;
-  if (metric.MetricName === "gis_usuarios_online_total") {
-    if (metric.Operation === 1) {
-      activeInstances.labels(labelsBody[0]).inc();
-    } else if (metric.Operation === 2) {
-      activeInstances.labels(labelsBody[0]).dec();
-    }
-  }
-}
-
-function setHistogramMetric(metric: HistogramMetric) {
-  const labelsBody = metric.Labels;
-  switch (metric.MetricName) {
-    case "cm_tempo_gerarproj_minutos":
-      timeToGenerateProj.observe(metric.ElapsedTimeMs!);
-      break;
-    case "gis_tempo_op_sap_segundos":
-      timeOperationsSAP.labels(labelsBody[0]).observe(metric.ElapsedTimeMs!);
-      break;
-    default:
-      break;
-  }
+function groupActiveUsersByUnity() {
+  let groupedUsers = groupByUnity(activeUsersArray);
+  let groupedUsersArray = Object.values(groupedUsers);
+  return groupedUsersArray;
 }
 
 // Função para agrupar usuários pela propriedade 'unity' e contar o total de usuários por unidade
@@ -164,6 +142,13 @@ function groupByUnity(users: WegUser[]): GroupedUsers {
       groups[unity].totalUsers++;
       return groups;
   }, {});
+}
+
+function setActiveUsersMetricValue(groupedUsersArray: { unity: string; totalUsers: number; }[]) {
+  activeUsers.reset();
+  groupedUsersArray.forEach((item) => {
+    activeUsers.labels(item.unity).inc(item.totalUsers);
+  });
 }
 
 export default router;

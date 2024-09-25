@@ -1,29 +1,90 @@
-import prom from 'prom-client';
+import prom, { Histogram } from 'prom-client';
+import { Gauge } from 'prom-client';
+import { GaugeMetric, HistogramMetric } from '../models';
 
-export const activeInstances = new prom.Gauge({
-  name: 'gis_usuarios_online_total',
-  help: 'Número de usuários logados no momento',
-  labelNames: ['unity']
-});
-
-const convertMinutesToMs = (arr: number[]) => arr.map(num => num * 60000);
-const bucketTimeToGenerateProj = convertMinutesToMs([15, 20, 25, 30, 35, 40, 45, 50, 55, 60]);
-
-export const timeToGenerateProj = new prom.Histogram({
-  name: 'cm_tempo_gerarproj_minutos',
-  help: 'Tempo em minutos que o CM leva para gerar o projeto',
-  buckets: bucketTimeToGenerateProj
-});
-
-export const timeOperationsSAP = new prom.Histogram({
-  name: 'gis_tempo_op_sap_segundos',
-  help: 'Tempo em segundos que o GIS levou para realizar as integrações com o SAP',
-  buckets: [100, 300, 500, 800, 1000, 3000, 5000, 8000, 10000],
-  labelNames: ['operacao']
-});
+export const gaugeList: Gauge[] = [];
+export const histogramList: prom.Histogram[] = [];
 
 export const activeUsers = new prom.Gauge({
   name: 'gis_usuarios_ativos_total',
   help: 'Número de usuários ativos nos últimos 3 meses',
   labelNames: ['unity']
 });
+
+gaugeList.push(activeUsers);
+
+export function addUpdateGauge(metric: GaugeMetric) {
+  if (!getGaugeByName(metric.MetricName)){
+    const tempGauge : Gauge = new Gauge({
+      name: metric.MetricName,
+      help: metric.Help,
+      labelNames: metric.LabelNames
+    });
+
+    const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues);    
+
+    if (metric.Operation === 1){
+      if (labels == undefined){
+        tempGauge.inc();
+      } else{
+        tempGauge.inc(labels, 1);
+      }      
+    }     
+    gaugeList.push(tempGauge);    
+  } else{    
+    const result = getGaugeByName(metric.MetricName);    
+
+    if (result){
+      const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues);
+      if (metric.Operation == 1){
+        result.inc(labels, 1);
+      } else{
+        result.dec(labels, 1);
+      }
+    }    
+  }  
+}
+
+function getGaugeByName(name: string): Gauge | undefined {
+  return gaugeList.find(gaugeItem =>
+    Object.values(gaugeItem).some(value => value === name)
+  );
+}
+
+function fillLabelsArray(labelNames : string[], labelValues : string[]) {
+    // Cria um objeto de labels baseado no array
+    const labels = labelValues.reduce((acc, valor, index) => {
+      acc[labelNames[index]] = valor; // label1, label2, etc.
+      return acc;
+  }, {} as Record<string, string>); 
+
+  return labels;
+}
+
+export function addUpdateHistogram(metric : HistogramMetric){
+  if (!getHistogramByName(metric.MetricName)){
+    const tempHistogram : Histogram = new Histogram({
+      name: metric.MetricName,
+      help: metric.Help,
+      labelNames: metric.LabelNames,
+      buckets: metric.Buckets
+    });
+
+    const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues); 
+
+    tempHistogram.observe(labels, metric.ElapsedTimeMs);         
+    histogramList.push(tempHistogram);    
+  } else{    
+    const result = getHistogramByName(metric.MetricName);    
+    if (result){
+      const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues);
+      result.observe(labels, metric.ElapsedTimeMs);      
+    }    
+  }  
+}
+
+function getHistogramByName(name: string): Histogram | undefined {
+  return histogramList.find(histogramItem =>
+    Object.values(histogramItem).some(value => value === name)
+  );
+}
