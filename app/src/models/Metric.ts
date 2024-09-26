@@ -1,3 +1,4 @@
+import { Label } from "./Label";
 import { WegUser } from "./WegUser";
 
 export class Metric{
@@ -6,8 +7,7 @@ export class Metric{
     public Help : string = "";
     public Type : number = 0;
     public Operation : number = 0;
-    public LabelNames : string[] = [];
-    public LabelValues : string[] = [];
+    public Label? : Label;
     public User? : WegUser;
     
     constructor(){}

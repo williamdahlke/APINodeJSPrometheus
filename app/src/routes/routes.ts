@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import prom from 'prom-client';
-import { GaugeMetric, HistogramMetric, Metric, WegUser } from '../models';
+import { GaugeMetric, HistogramMetric, Label, Metric, WegUser } from '../models';
 import { activeUsers, addUpdateGauge, addUpdateHistogram } from '../metrics';
 import { GroupedUsers } from '../interfaces';
 import { isValidJson } from '../validate';
@@ -53,14 +53,17 @@ router.get('/metrics', async (req: Request, res: Response) => {
  *                 type: integer
  *               Operation:
  *                 type: integer
- *               LabelNames:
- *                 type: array
- *                 items:
- *                  type: string
- *               LabelValues:
- *                 type: array
- *                 items:
- *                  type: string
+ *               Label:
+ *                type: object
+ *                properties:
+ *                  LabelNames:
+ *                    type: array
+ *                    items:
+ *                      type: string
+ *                  LabelValues:
+ *                    type: array
+ *                    items:
+ *                      type: string
  *               User:
  *                 type: object
  *                 properties:
@@ -73,8 +76,9 @@ router.get('/metrics', async (req: Request, res: Response) => {
  *               Help: Número de usuários logados no momento
  *               Type: 2
  *               Operation: 1
- *               LabelNames: ["unity"]
- *               LabelValues: ["WTD-BNU"]
+ *               Label:
+ *                LabelNames: ["unity"]
+ *                LabelValues: ["WTD-BNU"]
  *               User:
  *                Name: williamgd
  *                Unity: WTD-BNU
@@ -92,6 +96,7 @@ router.post('/metrics/insert/gauge', (req: Request, res: Response) => {
   
   const gaugeMetric : GaugeMetric = req.body;
   gaugeMetric.User = new WegUser(req.body.User.Name, req.body.User.Unity); 
+  gaugeMetric.Label = new Label(req.body.Label.LabelNames, req.body.Label.LabelValues);
   setGaugeMetric(gaugeMetric);
   res.status(201).send();
 });
@@ -124,14 +129,17 @@ function setGaugeMetric(metric: GaugeMetric) {
  *                 type: array
  *                 items:
  *                  type: integer
- *               LabelNames:
- *                 type: array
- *                 items:
- *                  type: string
- *               LabelValues:
- *                 type: array
- *                 items:
- *                  type: string
+ *               Label:
+ *                type: object
+ *                properties:
+ *                  LabelNames:
+ *                    type: array
+ *                    items:
+ *                      type: string
+ *                  LabelValues:
+ *                    type: array
+ *                    items:
+ *                      type: string
  *               ElapsedTimeMs:
  *                 type: long
  *               User:
@@ -146,8 +154,9 @@ function setGaugeMetric(metric: GaugeMetric) {
  *               Help: Tempo em segundos que o GIS levou para realizar as integrações com o SAP
  *               Type: 3   
  *               Buckets: [100,300,500,800,1000,3000,5000,8000,10000]
- *               LabelNames: ["operation"]
- *               LabelValues: ["Checkin"]
+ *               Label:
+ *                LabelNames: ["operation"]
+ *                LabelValues: ["Checkin"]
  *               ElapsedTimeMs: 1155
  *               User:
  *                Name: williamgd
@@ -166,6 +175,7 @@ router.post('/metrics/insert/histogram', (req: Request, res: Response) => {
   
   const histogramMetric : HistogramMetric = req.body;
   histogramMetric.User = new WegUser(req.body.User.Name, req.body.User.Unity);     
+  histogramMetric.Label = new Label(req.body.Label.LabelNames, req.body.Label.LabelValues);  
   setHistogramMetric(histogramMetric);
   res.status(201).send();
 });

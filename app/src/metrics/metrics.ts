@@ -18,10 +18,10 @@ export function addUpdateGauge(metric: GaugeMetric) {
     const tempGauge : Gauge = new Gauge({
       name: metric.MetricName,
       help: metric.Help,
-      labelNames: metric.LabelNames
+      labelNames: metric.Label!.LabelNames
     });
 
-    const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues);    
+    const labels = fillLabelsArray(metric.Label!.LabelNames, metric.Label!.LabelValues);    
 
     if (metric.Operation === 1){
       if (labels == undefined){
@@ -35,7 +35,7 @@ export function addUpdateGauge(metric: GaugeMetric) {
     const result = getGaugeByName(metric.MetricName);    
 
     if (result){
-      const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues);
+      const labels = fillLabelsArray(metric.Label!.LabelNames, metric.Label!.LabelValues);
       if (metric.Operation == 1){
         result.inc(labels, 1);
       } else{
@@ -66,18 +66,18 @@ export function addUpdateHistogram(metric : HistogramMetric){
     const tempHistogram : Histogram = new Histogram({
       name: metric.MetricName,
       help: metric.Help,
-      labelNames: metric.LabelNames,
+      labelNames: metric.Label!.LabelNames,
       buckets: metric.Buckets
     });
 
-    const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues); 
+    const labels = fillLabelsArray(metric.Label!.LabelNames, metric.Label!.LabelValues); 
 
     tempHistogram.observe(labels, metric.ElapsedTimeMs);         
     histogramList.push(tempHistogram);    
   } else{    
     const result = getHistogramByName(metric.MetricName);    
     if (result){
-      const labels = fillLabelsArray(metric.LabelNames, metric.LabelValues);
+      const labels = fillLabelsArray(metric.Label!.LabelNames, metric.Label!.LabelValues);
       result.observe(labels, metric.ElapsedTimeMs);      
     }    
   }  
