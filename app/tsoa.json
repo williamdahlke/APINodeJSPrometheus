@@ -6,7 +6,7 @@
     "outputDirectory": "src/docs",
     "specVersion": 3,  
     "basePath": "/",
-    "host": "localhost:3000",  
+    "host": "localhost:3031",  
     "schemes": ["http"],  
     "securityDefinitions": {
       "BearerAuth": {
@@ -17,12 +17,9 @@
     },
     "tags": [
       {
-        "name": "Cursos",
-        "description": "Operações relacionadas a cursos"
+        "name": "Metrics",
+        "description": "Operations to get and set metrics"
       }
     ]
-  },
-  "routes": {
-    "routesDir": "src/routes"
   }
 }

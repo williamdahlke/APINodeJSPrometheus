@@ -6,7 +6,126 @@
 		"parameters": {},
 		"requestBodies": {},
 		"responses": {},
-		"schemas": {},
+		"schemas": {
+			"Label": {
+				"properties": {
+					"LabelNames": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"default": []
+					},
+					"LabelValues": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"default": []
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"WegUser": {
+				"properties": {
+					"LastOpened": {
+						"type": "number",
+						"format": "double"
+					},
+					"Name": {
+						"type": "string"
+					},
+					"Unity": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"LastOpened",
+					"Name",
+					"Unity"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"GaugeMetric": {
+				"properties": {
+					"MetricName": {
+						"type": "string",
+						"default": ""
+					},
+					"Help": {
+						"type": "string",
+						"default": ""
+					},
+					"Type": {
+						"type": "number",
+						"format": "double",
+						"default": 0
+					},
+					"Operation": {
+						"type": "number",
+						"format": "double"
+					},
+					"Label": {
+						"$ref": "#/components/schemas/Label"
+					},
+					"User": {
+						"$ref": "#/components/schemas/WegUser"
+					}
+				},
+				"required": [
+					"Operation"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"HistogramMetric": {
+				"properties": {
+					"MetricName": {
+						"type": "string",
+						"default": ""
+					},
+					"Help": {
+						"type": "string",
+						"default": ""
+					},
+					"Type": {
+						"type": "number",
+						"format": "double",
+						"default": 0
+					},
+					"Operation": {
+						"type": "number",
+						"format": "double",
+						"default": 0
+					},
+					"Label": {
+						"$ref": "#/components/schemas/Label"
+					},
+					"User": {
+						"$ref": "#/components/schemas/WegUser"
+					},
+					"ElapsedTimeMs": {
+						"type": "number",
+						"format": "double",
+						"default": 0
+					},
+					"Buckets": {
+						"items": {
+							"type": "number",
+							"format": "double"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"Buckets"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
 		"securitySchemes": {
 			"BearerAuth": {
 				"type": "apiKey",
@@ -31,7 +150,7 @@
 				"operationId": "GetMetrics",
 				"responses": {
 					"200": {
-						"description": "Ok",
+						"description": "a string with a list of metrics.",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -41,20 +160,88 @@
 						}
 					}
 				},
+				"description": "Retrieve a list of metrics",
+				"tags": [
+					"Metrics"
+				],
 				"security": [],
 				"parameters": []
+			}
+		},
+		"/api/metrics/insert/gauge": {
+			"post": {
+				"operationId": "InsertGauge",
+				"responses": {
+					"201": {
+						"description": "Created"
+					},
+					"204": {
+						"description": "No content"
+					},
+					"400": {
+						"description": "JSON is not valid."
+					}
+				},
+				"description": "Post metrics of the type gauge to integrate with prometheus",
+				"tags": [
+					"Metrics"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GaugeMetric"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/metrics/insert/histogram": {
+			"post": {
+				"operationId": "InsertHistogram",
+				"responses": {
+					"201": {
+						"description": "Created"
+					},
+					"204": {
+						"description": "No content"
+					},
+					"400": {
+						"description": "JSON is not valid"
+					}
+				},
+				"description": "Post metrics of the type histogram to integrate with prometheus",
+				"tags": [
+					"Metrics"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/HistogramMetric"
+							}
+						}
+					}
+				}
 			}
 		}
 	},
 	"servers": [
 		{
-			"url": "http://localhost:3000/"
+			"url": "http://localhost:3031/"
 		}
 	],
 	"tags": [
 		{
-			"name": "Cursos",
-			"description": "Operações relacionadas a cursos"
+			"name": "Metrics",
+			"description": "Operations to get and set metrics"
 		}
 	]
 }
