@@ -25,7 +25,7 @@ const metricsController = new MetricsController();
  */
 router.get('/metrics', async (req: Request, res: Response) => {
   res.set('Content-Type', await metricsController.getContentType());
-  res.end(await metricsController.getContentType());
+  res.end(await metricsController.getMetrics());
 });
 
 /**
