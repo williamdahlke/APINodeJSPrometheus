@@ -7,4 +7,5 @@ docker run -d --name=gis-metrics-api -p 3031:3031 gis-metrics-api
 npm install swagger-ui-express swagger-jsdoc
 npm i --save-dev @types/express
 npx tsc
-node dist/index.js
+node dist/src/index.js
+npm install tsoa swagger-ui-express express --save
