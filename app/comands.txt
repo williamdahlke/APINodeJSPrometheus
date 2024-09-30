@@ -9,3 +9,6 @@ npm i --save-dev @types/express
 npx tsc
 node dist/src/server.js
 npm install tsoa swagger-ui-express express --save
+
+npm install tsoa swagger-ui-express body-parser express
+npm install --save-dev typescript @types/swagger-ui-express @types/body-parser @types/express

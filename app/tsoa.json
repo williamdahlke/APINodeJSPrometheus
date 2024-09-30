@@ -1,0 +1,28 @@
+{
+  "entryFile": "src/server.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/*.ts"],
+  "spec": {
+    "outputDirectory": "src/docs",
+    "specVersion": 3,  
+    "basePath": "/",
+    "host": "localhost:3000",  
+    "schemes": ["http"],  
+    "securityDefinitions": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    },
+    "tags": [
+      {
+        "name": "Cursos",
+        "description": "Operações relacionadas a cursos"
+      }
+    ]
+  },
+  "routes": {
+    "routesDir": "src/routes"
+  }
+}

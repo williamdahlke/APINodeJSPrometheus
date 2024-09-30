@@ -1,10 +1,11 @@
-import { Get, Route, Tags } from 'tsoa';
+import { Controller, Get, Route, Tags } from 'tsoa';
 import { GaugeMetric, HistogramMetric, Label, Metric, WegUser } from '../models';
 import { addUpdateGauge, addUpdateHistogram, register, setActiveUserGaugeMetric } from '../services';
 
+@Route("api/metrics")
+export class MetricsController extends Controller{
 
-export class MetricsController{
-
+    @Get()
     public async getMetrics() : Promise<string>{
         return register.metrics();
     }
