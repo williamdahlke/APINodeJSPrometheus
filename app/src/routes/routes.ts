@@ -1,14 +1,10 @@
 import express, { Request, Response } from 'express';
-import prom from 'prom-client';
-import { GaugeMetric, HistogramMetric, Label, Metric, WegUser } from '../models';
-import { activeUsers, addUpdateGauge, addUpdateHistogram } from '../metrics';
-import { GroupedUsers } from '../interfaces';
 import { isValidJson } from '../validate';
+import { MetricsController } from '../controllers/MetricsController';
+import { GaugeMetric, HistogramMetric, Label, WegUser } from '../models';
 
 const router = express.Router();
-const register = prom.register;
-
-let activeUsersArray: WegUser[] = [];
+const metricsController = new MetricsController();
 
 /**
  * @swagger
@@ -28,8 +24,8 @@ let activeUsersArray: WegUser[] = [];
  *         description: A list of metrics
  */
 router.get('/metrics', async (req: Request, res: Response) => {
-  res.set('Content-Type', register.contentType);
-  res.end(await register.metrics());
+  res.set('Content-Type', await metricsController.getContentType());
+  res.end(await metricsController.getMetrics());
 });
 
 /**
@@ -97,14 +93,10 @@ router.post('/metrics/insert/gauge', (req: Request, res: Response) => {
   const gaugeMetric : GaugeMetric = req.body;
   gaugeMetric.User = new WegUser(req.body.User.Name, req.body.User.Unity); 
   gaugeMetric.Label = new Label(req.body.Label.LabelNames, req.body.Label.LabelValues);
-  setGaugeMetric(gaugeMetric);
+  
+  metricsController.insertGauge(gaugeMetric);
   res.status(201).send();
 });
-
-function setGaugeMetric(metric: GaugeMetric) {
-  addUpdateGauge(metric);
-  setActiveUserGaugeMetric(metric);
-}
 
 /**
  * @swagger
@@ -167,6 +159,7 @@ function setGaugeMetric(metric: GaugeMetric) {
  *      400:
  *        description: An error occurred or JSON is invalid
  */
+
 router.post('/metrics/insert/histogram', (req: Request, res: Response) => {
 
   if (!isValidJson(req.body)) {
@@ -176,53 +169,8 @@ router.post('/metrics/insert/histogram', (req: Request, res: Response) => {
   const histogramMetric : HistogramMetric = req.body;
   histogramMetric.User = new WegUser(req.body.User.Name, req.body.User.Unity);     
   histogramMetric.Label = new Label(req.body.Label.LabelNames, req.body.Label.LabelValues);  
-  setHistogramMetric(histogramMetric);
+  metricsController.insertHistogram(histogramMetric);
   res.status(201).send();
 });
-
-function setHistogramMetric(metric: HistogramMetric) {
-  addUpdateHistogram(metric);
-  setActiveUserGaugeMetric(metric);
-}
-
-function setActiveUserGaugeMetric(metric: Metric) {
-  const selectedUser = activeUsersArray.find(x => x.Name == metric.User!.Name && x.Unity == metric.User!.Unity);
-  if (selectedUser == undefined) activeUsersArray.push(metric.User!);
-
-  filterActiveUsersByTime();
-  let groupedUsersArray = groupActiveUsersByUnity();
-  setActiveUsersMetricValue(groupedUsersArray);
-}
-
-function filterActiveUsersByTime() {
-  let filtroData = new Date();
-  filtroData.setDate(filtroData.getDate() - 90);
-  activeUsersArray = activeUsersArray.filter((x) => x.LastOpened >= filtroData.getTime());
-}
-
-function groupActiveUsersByUnity() {
-  let groupedUsers = groupByUnity(activeUsersArray);
-  let groupedUsersArray = Object.values(groupedUsers);
-  return groupedUsersArray;
-}
-
-// Função para agrupar usuários pela propriedade 'unity' e contar o total de usuários por unidade
-function groupByUnity(users: WegUser[]): GroupedUsers {
-  return users.reduce((groups: GroupedUsers, user: WegUser) => {
-      const unity = user.Unity;
-      if (!groups[unity]) {
-          groups[unity] = { unity: unity, totalUsers: 0 };
-      }
-      groups[unity].totalUsers++;
-      return groups;
-  }, {});
-}
-
-function setActiveUsersMetricValue(groupedUsersArray: { unity: string; totalUsers: number; }[]) {
-  activeUsers.reset();
-  groupedUsersArray.forEach((item) => {
-    activeUsers.labels(item.unity).inc(item.totalUsers);
-  });
-}
 
 export default router;
