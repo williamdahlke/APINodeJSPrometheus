@@ -127,10 +127,10 @@
 			}
 		},
 		"securitySchemes": {
-			"BearerAuth": {
-				"type": "apiKey",
+			"bearerAuth": {
+				"type": "http",
 				"name": "Authorization",
-				"in": "header"
+				"scheme": "bearer"
 			}
 		}
 	},
@@ -180,13 +180,20 @@
 					},
 					"400": {
 						"description": "JSON is not valid."
+					},
+					"401": {
+						"description": "Unauthorized"
 					}
 				},
 				"description": "Post metrics of the type gauge to integrate with prometheus",
 				"tags": [
 					"Metrics"
 				],
-				"security": [],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
 				"parameters": [],
 				"requestBody": {
 					"required": true,
@@ -212,13 +219,20 @@
 					},
 					"400": {
 						"description": "JSON is not valid"
+					},
+					"401": {
+						"description": "Unauthorized"
 					}
 				},
 				"description": "Post metrics of the type histogram to integrate with prometheus",
 				"tags": [
 					"Metrics"
 				],
-				"security": [],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
 				"parameters": [],
 				"requestBody": {
 					"required": true,

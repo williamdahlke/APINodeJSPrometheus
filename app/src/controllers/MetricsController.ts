@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Route, Tags, Response } from 'tsoa';
+import { Body, Controller, Get, Post, Route, Tags, Response, Security } from 'tsoa';
 import { GaugeMetric, HistogramMetric } from '../models';
 import { addUpdateGauge, addUpdateHistogram, register, setActiveUserGaugeMetric } from '../services';
 
@@ -25,6 +25,8 @@ export class MetricsController extends Controller{
     @Post("/insert/gauge")
     @Response(201, "Created")
     @Response(400, "JSON is not valid.")
+    @Response(401, "Unauthorized")
+    @Security("bearerAuth")
     public async insertGauge(@Body() gaugeMetric : GaugeMetric) {
         addUpdateGauge(gaugeMetric);
         setActiveUserGaugeMetric(gaugeMetric);
@@ -36,6 +38,8 @@ export class MetricsController extends Controller{
     @Post("/insert/histogram")
     @Response(201, "Created")
     @Response(400, "JSON is not valid")
+    @Response(401, "Unauthorized")  
+    @Security("bearerAuth")      
     public async insertHistogram(@Body() histogramMetric : HistogramMetric){
         addUpdateHistogram(histogramMetric);
         setActiveUserGaugeMetric(histogramMetric);

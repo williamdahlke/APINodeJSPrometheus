@@ -9,10 +9,10 @@
     "host": "localhost:3031",  
     "schemes": ["http"],  
     "securityDefinitions": {
-      "BearerAuth": {
-        "type": "apiKey",
+      "bearerAuth": {
+        "type": "http",
         "name": "Authorization",
-        "in": "header"
+        "scheme": "bearer"
       }
     },
     "tags": [
